@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import "./index.css";
+import { Toaster } from "react-hot-toast";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -18,7 +19,6 @@ createRoot(document.getElementById("root")!).render(
             aboutUrl: "https://www.okx.com/web3",
             universalLink:
               "https://www.okx.com/download?appendQuery=true&deeplink=okx://web3/wallet/tonconnect",
-            // bridgeUrl: storedValue,
             jsBridgeKey: "okxTonWallet",
             platforms: ["chrome", "safari", "firefox", "ios", "android"],
           },
@@ -26,6 +26,7 @@ createRoot(document.getElementById("root")!).render(
       }}
     >
       <App />
+      <Toaster />
     </TonConnectUIProvider>
   </StrictMode>
 );

@@ -12,8 +12,10 @@
   "dependencies": {
     "@ton/ton": "^15.0.0",
     "@tonconnect/ui-react": "^2.0.9",
+    "add": "^2.0.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.4.1",
     "vite-plugin-node-polyfills": "^0.22.0"
   },
   "devDependencies": {

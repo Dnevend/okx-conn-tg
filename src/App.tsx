@@ -1,41 +1,40 @@
+import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import "./App.css";
-import { useEffect, useState } from "react";
 import { Address } from "@ton/ton";
-import { TonConnectButton } from "@tonconnect/ui-react";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 function App() {
-  const [connectInfo, setConnectInfo] = useState<TonAddressItemReply | null>(
-    null
-  );
-  const isConnected = Boolean(connectInfo);
-  const address = connectInfo ? Address.parse(connectInfo.address) : null;
-  const rawAddress = address?.toString({ bounceable: false });
+  const wallet = useTonWallet();
+  const [connectUi] = useTonConnectUI();
+  const rawAddress = wallet
+    ? Address.parse(wallet?.account.address).toString({ bounceable: false })
+    : null;
 
-  useEffect(() => {
-    window.okxTonWallet?.tonconnect.restoreConnection();
+  const [txAddress, setTxAddress] = useState<string>("");
+  const [txAmount, setTxAmount] = useState<number>(0.01);
+  const [txRes, setTxRes] = useState<string>("");
 
-    window.okxTonWallet?.tonconnect.listen((event) => {
-      console.log(event);
-      if (event.event === "connect") {
-        const replay = event.payload.items[0] as TonAddressItemReply;
-        setConnectInfo(replay);
-      }
-
-      if (event.event === "disconnect") {
-        setConnectInfo(null);
-      }
+  const sendTransaction = async () => {
+    if (!txAddress) {
+      toast.error("Please input target address!");
+      return;
+    }
+    if (!txAmount) {
+      toast.error("Please input tx amount!");
+      return;
+    }
+    const res = await connectUi.sendTransaction({
+      // The transaction is valid for 10 minutes from now, in unix epoch seconds.
+      validUntil: Math.floor(Date.now() / 1000) + 600,
+      messages: [
+        {
+          address: "",
+          amount: "",
+        },
+      ],
     });
-  }, []);
-
-  const connectOKX = async () => {
-    await window.okxTonWallet?.tonconnect.connect(2, {
-      manifestUrl: "https://okx-tg.vercel.app/tonconnect-manifest.json",
-      items: [{ name: "ton_addr" }],
-    });
-  };
-
-  const disconnect = () => {
-    window.okxTonWallet?.tonconnect.disconnect();
+    setTxRes(JSON.stringify(res));
   };
 
   return (
@@ -51,27 +50,35 @@ function App() {
         }}
       >
         <h2>TonConnectButton</h2>
-        <TonConnectButton />
-      </div>
-
-      <br />
-
-      <div className="card">
-        <h2>CustomConnectButton</h2>
-        {!isConnected && (
-          <button onClick={() => connectOKX()}>Connect OKX</button>
+        {wallet ? (
+          <button onClick={() => connectUi.disconnect()}>Disconnect</button>
+        ) : (
+          <button
+            onClick={() => connectUi.openSingleWalletModal("okxTonWallet")}
+          >
+            Connect OKX
+          </button>
         )}
-
-        {isConnected && (
-          <button onClick={() => disconnect()}>Disconnect</button>
-        )}
-
-        {connectInfo && (
+        {rawAddress && (
           <>
-            <p>{address?.toRawString()}</p>
             <p>{rawAddress}</p>
+            <button onClick={() => sendTransaction()}>Send Transaction</button>
+            <br />
+            <input
+              placeholder="Receive Address"
+              value={txAddress}
+              onChange={(e) => setTxAddress(e.target.value)}
+            />
+            <br />
+            <input
+              type="number"
+              placeholder="Amount"
+              value={txAmount}
+              onChange={(e) => setTxAmount(Number(e.target.value))}
+            />
           </>
         )}
+        <p>{txRes}</p>
       </div>
     </>
   );
