@@ -1,6 +1,6 @@
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import "./App.css";
-import { Address } from "@ton/ton";
+import { Address, toNano } from "@ton/ton";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -24,16 +24,18 @@ function App() {
       toast.error("Please input tx amount!");
       return;
     }
+
     const res = await connectUi.sendTransaction({
       // The transaction is valid for 10 minutes from now, in unix epoch seconds.
       validUntil: Math.floor(Date.now() / 1000) + 600,
       messages: [
         {
-          address: "",
-          amount: "",
+          address: txAddress,
+          amount: toNano(txAmount).toString(),
         },
       ],
     });
+    toast.success("Transaction sent!");
     setTxRes(JSON.stringify(res));
   };
 
@@ -59,7 +61,7 @@ function App() {
             Connect OKX
           </button>
         )}
-        {rawAddress && (
+        {wallet && (
           <>
             <p>{rawAddress}</p>
             <button onClick={() => sendTransaction()}>Send Transaction</button>
@@ -78,7 +80,7 @@ function App() {
             />
           </>
         )}
-        <p>{txRes}</p>
+        <pre style={{ wordBreak: "break-all" }}>{txRes}</pre>
       </div>
     </>
   );
