@@ -8,9 +8,9 @@ function App() {
   const isConnected = Boolean(address);
 
   useEffect(() => {
-    window.okxTonWallet.tonconnect.restoreConnection();
+    window.okxTonWallet?.tonconnect.restoreConnection();
 
-    window.okxTonWallet.tonconnect.listen((event) => {
+    window.okxTonWallet?.tonconnect.listen((event) => {
       console.log(event);
       if (event.event === "connect") {
         const address = (event.payload.items[0] as TonAddressItemReply).address;
@@ -24,14 +24,14 @@ function App() {
   }, []);
 
   const connectOKX = async () => {
-    await window.okxTonWallet.tonconnect.connect(2, {
-      manifestUrl: "https://okx-conn-tg.vercel.app/tonconnect-manifest.json",
+    await window.okxTonWallet?.tonconnect.connect(2, {
+      manifestUrl: "https://okx-tg.vercel.app/tonconnect-manifest.json",
       items: [{ name: "ton_addr" }],
     });
   };
 
   const disconnect = () => {
-    window.okxTonWallet.tonconnect.disconnect();
+    window.okxTonWallet?.tonconnect.disconnect();
   };
 
   return (
