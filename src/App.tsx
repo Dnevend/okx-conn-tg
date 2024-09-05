@@ -1,11 +1,15 @@
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import { useEffect, useState } from "react";
+import { Address } from "@ton/ton";
+import { TonConnectButton } from "@tonconnect/ui-react";
 
 function App() {
-  const [address, setAddress] = useState<string>();
-  const isConnected = Boolean(address);
+  const [connectInfo, setConnectInfo] = useState<TonAddressItemReply | null>(
+    null
+  );
+  const isConnected = Boolean(connectInfo);
+  const address = connectInfo ? Address.parse(connectInfo.address) : null;
+  const rawAddress = address?.toString({ bounceable: false });
 
   useEffect(() => {
     window.okxTonWallet?.tonconnect.restoreConnection();
@@ -13,12 +17,12 @@ function App() {
     window.okxTonWallet?.tonconnect.listen((event) => {
       console.log(event);
       if (event.event === "connect") {
-        const address = (event.payload.items[0] as TonAddressItemReply).address;
-        setAddress(address);
+        const replay = event.payload.items[0] as TonAddressItemReply;
+        setConnectInfo(replay);
       }
 
       if (event.event === "disconnect") {
-        setAddress("");
+        setConnectInfo(null);
       }
     });
   }, []);
@@ -36,16 +40,24 @@ function App() {
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <h1>OKX x Telegram Mini App</h1>
+
+      <div
+        className="card"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <h2>TonConnectButton</h2>
+        <TonConnectButton />
       </div>
-      <h1>Vite + React</h1>
+
+      <br />
+
       <div className="card">
+        <h2>CustomConnectButton</h2>
         {!isConnected && (
           <button onClick={() => connectOKX()}>Connect OKX</button>
         )}
@@ -54,11 +66,13 @@ function App() {
           <button onClick={() => disconnect()}>Disconnect</button>
         )}
 
-        <p>{address}</p>
+        {connectInfo && (
+          <>
+            <p>{address?.toRawString()}</p>
+            <p>{rawAddress}</p>
+          </>
+        )}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }
