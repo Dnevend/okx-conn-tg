@@ -1,10 +1,38 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
+import "./App.css";
+import { useEffect, useState } from "react";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [address, setAddress] = useState<string>();
+  const isConnected = Boolean(address);
+
+  useEffect(() => {
+    window.okxTonWallet.tonconnect.restoreConnection();
+
+    window.okxTonWallet.tonconnect.listen((event) => {
+      console.log(event);
+      if (event.event === "connect") {
+        const address = (event.payload.items[0] as TonAddressItemReply).address;
+        setAddress(address);
+      }
+
+      if (event.event === "disconnect") {
+        setAddress("");
+      }
+    });
+  }, []);
+
+  const connectOKX = async () => {
+    await window.okxTonWallet.tonconnect.connect(2, {
+      manifestUrl: "https://okx-conn-tg.vercel.app/tonconnect-manifest.json",
+      items: [{ name: "ton_addr" }],
+    });
+  };
+
+  const disconnect = () => {
+    window.okxTonWallet.tonconnect.disconnect();
+  };
 
   return (
     <>
@@ -18,18 +46,21 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        {!isConnected && (
+          <button onClick={() => connectOKX()}>Connect OKX</button>
+        )}
+
+        {isConnected && (
+          <button onClick={() => disconnect()}>Disconnect</button>
+        )}
+
+        <p>{address}</p>
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
